@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- bootstrap CND -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj"
+        crossorigin="anonymous"></script>
+
+    <!-- CSS link -->
+    <link rel="stylesheet" href="./style.css">
+
+
+    <!-- firbase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.9.1/firebase-firestore.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light nav-header">
+        <div class="container-fluid">
+            <a class="navbar-brand"><img src="../assets/logo-removebg-preview.png" alt="logo"></a>
+            <div class="d-flex">
+                <span id="print-user-name"></span>
+                <button class="btn btn-outline-danger" type="submit" onclick="return logout()">Log out</button>
+            </div>
+        </div>
+    </nav>
+    <div class="container dashboard-container">
+        <div class="row dashboard-container--row">
+            <div class="col-md-4 col-lg-4">
+                <ul class="list-group" id="print-users">
+
+
+                </ul>
+            </div>
+            <div class="col-md-8 col-lg-8 chat-room">
+                <div class="chat-room--header">
+                    <div class="user-avatar">
+                        <div class="user-avatar--frame"> <img src="../assets/user.svg" alt="user"></div>
+                        <div class="user-avatar--name"> <span id="usersName"></span></div>
+                    </div>
+                </div>
+
+                <div>
+                    <div id="get-messg">
+                        <!-- 
+                        <div class="msg"><span>hello</span></div>
+                        <div class="msg sender"><span>how are you</span></div>
+                        <div class="msg"><span>I'm fine</span></div> -->
+
+                    </div>
+                </div>
+
+                <div class="row chat-room--footer">
+                    <div class="col-md-10 col-lg-10 field-container"><input type="text" class="form-control"
+                            placeholder="Type your message..." id="write-msg"></div>
+                    <div class="col-md-2 col-lg-2"><button onclick="return sendMsg()" type="button"
+                            class="btn btn-outline-primary send-btn">Send</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyCj2FLbm9hYtsRoRVVRQsst0Fwm468zyto",
+        authDomain: "chatter-000.firebaseapp.com",
+        projectId: "chatter-000",
+        storageBucket: "chatter-000.appspot.com",
+        messagingSenderId: "1049588690140",
+        appId: "1:1049588690140:web:5145ce7b40d7a352765819"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var allUser = [];
+    var checkingMessage = []
+
+    var setSelectedUser = {};
+    var elem;
+    var userUID = ''
+    var msgs = [
+        {
+            message: 'Hi there',
+            displayName: 'Noman Aamir',
+            sender: false
+        },
+        {
+            message: 'whats up, how are you?',
+            displayName: 'Taha Aamir',
+            sender: true
+        },
+        {
+            message: 'Im good, thanks',
+            displayName: 'Noman Aamir',
+            sender: false
+        }
+    ]
+
+
+
+    // getting users
+    function OnInit() {
+
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+
+                // User is signed in, see docs for a list of available properties
+                // https://firebase.google.com/docs/reference/js/firebase.User
+                userUID = user.uid;
+                userName = user.displayName;
+                userName = document.getElementById("print-user-name").innerHTML = user.displayName
+                getUsers(user.uid);
+                // ...
+            } else {
+
+                // User is signed out
+                // ...
+            }
+        });
+
+
+    }
+
+    function selectUser(selectedUser, allUsers) {
+        resetMessages()
+        setSelectedUser = selectedUser;
+        getmessages(selectedUser.userUID)
+
+        document.getElementById('usersName').innerHTML = selectedUser.name;
+        allUsers.filter(a => {
+
+            if (setSelectedUser.userUID === a.userUID) {
+                document.getElementById(setSelectedUser.userUID).style.color = '#df3c70'
+            } else {
+                document.getElementById(a.userUID).style.color = 'black'
+            }
+        });
+
+    }
+function resetMessages() {
+    checkingMessage = [];
+    document.getElementById('get-messg').innerHTML = ''
+}
+    function getUsers(uid) {
+        var firebaseUsers = []
+
+        var fireData = firebase.firestore().collection(`users`).where("userUID", "!=", uid);
+
+        fireData.get().then((response) => {
+            if (response) {
+                response.forEach((doc) => {
+
+                    firebaseUsers.push(doc.data())
+
+                });
+                for (let index = 0; index < firebaseUsers.length; index++) {
+                    let list = document.createElement('li');
+                    list.addEventListener("click", () => {
+                        selectUser(firebaseUsers[index], firebaseUsers)
+                        // console.log("Button is clicked" , selectUser(index));
+                    });
+                    list.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-center');
+                    let chatBox = document.createElement('div');
+                    chatBox.setAttribute('class', 'chat-box');
+                    list.appendChild(chatBox);
+                    let userName = document.createElement('b');
+                    userName.innerHTML = `${firebaseUsers[index].name}`
+                    userName.setAttribute('class', 'user-name');
+                    userName.setAttribute('id', `${firebaseUsers[index].userUID}`);
+
+                    chatBox.appendChild(userName);
+                    let lastMsg = document.createElement('span');
+                    lastMsg.innerHTML = 'Last message'
+                    lastMsg.setAttribute('class', 'last-msg');
+                    chatBox.appendChild(lastMsg);
+                    document.getElementById('print-users').appendChild(list);
+                }
+
+
+            }
+        })
+
+
+
+
+    }
+
+    function sendMsg() {
+        resetMessages()
+        console.log('setSelectedUser.userUID', setSelectedUser.userUID);
+        console.log('userUID', userUID)
+        var takingMessage = document.getElementById("write-msg").value
+        console.log('takingMessage', takingMessage)
+        if (takingMessage === '') {
+            alert('Field is required')
+        } else {
+            firebase.firestore().collection(`messeges`).doc(setSelectedUser.userUID).collection(userUID).add({
+                msg: takingMessage,
+                sender: userUID
+            })
+                .then(() => {
+                    console.log("Document successfully written!");
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                });
+
+
+            firebase.firestore().collection(`messeges`).doc(userUID).collection(setSelectedUser.userUID).add({
+                msg: takingMessage,
+                sender: userUID
+
+            })
+                .then(() => {
+                    console.log("Document successfully written!");
+                })
+                .catch((error) => {
+                    console.error("Error writing document: ", error);
+                });
+
+            document.getElementById("write-msg").value = '';
+        }
+
+        getmessages(setSelectedUser.userUID)
+
+        return false
+
+
+    }
+
+    function getmessages(selectedUserUid) {
+        // alert('CLICKED')
+        resetMessages()
+ 
+        var docRef = firebase.firestore().collection(`messeges`).doc(userUID).collection(selectedUserUid);
+        docRef.onSnapshot((querySnapshot) => {
+               if(querySnapshot){
+                querySnapshot.forEach((doc) => {
+                    checkingMessage.push(doc.data())
+
+                });
+
+                for (let index = 0; index < checkingMessage.length; index++) {
+                    
+                    if (userUID === checkingMessage[index].sender) {
+                        document.getElementById("get-messg").innerHTML += `
+
+<div class="msg sender"><span>${checkingMessage[index].msg}</span></div>
+
+`
+                    } else {
+
+                        document.getElementById("get-messg").innerHTML += `
+    
+            <div class="msg"><span>${checkingMessage[index].msg}</span></div>
+    
+        `
+                    }
+                }
+            
+               }
+
+            })
+           
+    }
+
+
+
+
+    function logout() {
+        firebase.auth().signOut().then(() => {
+            location.href = "../sign-up/index.html"
+        }).catch((error) => {
+            // An error happened.
+            return false
+        });
+
+    }
+
+
+    OnInit()
+
+
+</script>
+
+</html>

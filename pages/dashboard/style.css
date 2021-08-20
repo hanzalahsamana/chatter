@@ -1,0 +1,113 @@
+.dashboard-container{
+    max-height: 400px;
+    min-height: 400px;
+    height: 400px;
+}
+.dashboard-container .dashboard-container--row{
+    height: 100%;
+}
+.list-group{
+    height: 100%;
+    overflow: auto;
+    max-height: 400px;
+    border: 1px solid rgba(0,0,0,.125);
+}
+.list-group .list-group-item{
+    cursor: pointer;
+    border: none;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+.chat-box{
+    display: inline-grid;
+}
+.chat-room{
+    border: 1px solid rgba(0,0,0,.125);
+    position: relative;
+}
+.chat-room--header{
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,.125);
+}
+
+.user-avatar{
+    display: flex;
+    align-items: center;
+}
+.user-avatar .user-avatar--frame{
+    height: 40px;
+    width: 40px;
+    border: 1px solid #df3c70;
+    border-radius: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px;
+}
+.user-avatar .user-avatar--frame img{
+    height: 100%;
+    width: 100%
+}
+.user-avatar .user-avatar--name{
+    font-size: 18px;
+    font-weight: 400;
+    margin-left: 5px;
+    letter-spacing: 1px;
+    color: #df3c70;
+}
+.row .chat-room--footer{
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+}
+
+.row .chat-room--footer , input{
+    width: 100%;
+}
+.row .chat-room--footer .send-btn{
+    color: #df3c70;
+    border-color: #df3c70;
+}
+.row .chat-room--footer .send-btn:hover{
+    color: white;
+    background-color: #df3c70;
+}
+#get-messg{
+    max-height: 285px;
+    overflow: auto;
+}
+#get-messg .msg{
+    border: 1px solid #df3c70;
+    width: fit-content;
+    padding: 2px 8px;
+    border-radius: 10px;
+    border-top-left-radius: unset;
+    font-size: 15px;
+    margin: 10px 0;
+}
+
+#get-messg .sender{
+    background-color: #df3c70;
+    color: white;
+    border-color: transparent;
+    border-top-right-radius: unset !important;
+    border-top-left-radius: 10px !important;
+    margin-left: auto !important;
+}
+
+.nav-header{
+    margin-bottom: 50px;
+}
+.d-flex{
+    align-items: center ;
+}
+
+.d-flex #print-user-name{
+    margin: 0 10px;
+    font-size: 18px;
+    text-transform: capitalize;
+    font-weight: 500;
+}
+
+.active-user{
+    color: teal;
+}
