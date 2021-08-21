@@ -51,10 +51,7 @@
 
                 <div>
                     <div id="get-messg">
-                        <!-- 
-                        <div class="msg"><span>hello</span></div>
-                        <div class="msg sender"><span>how are you</span></div>
-                        <div class="msg"><span>I'm fine</span></div> -->
+
 
                     </div>
                 </div>
@@ -84,29 +81,8 @@
     firebase.initializeApp(firebaseConfig);
     var allUser = [];
     var checkingMessage = []
-
     var setSelectedUser = {};
-    var elem;
     var userUID = ''
-    var msgs = [
-        {
-            message: 'Hi there',
-            displayName: 'Noman Aamir',
-            sender: false
-        },
-        {
-            message: 'whats up, how are you?',
-            displayName: 'Taha Aamir',
-            sender: true
-        },
-        {
-            message: 'Im good, thanks',
-            displayName: 'Noman Aamir',
-            sender: false
-        }
-    ]
-
-
 
     // getting users
     function OnInit() {
@@ -114,8 +90,6 @@
         firebase.auth().onAuthStateChanged((user) => {
             if (user) {
 
-                // User is signed in, see docs for a list of available properties
-                // https://firebase.google.com/docs/reference/js/firebase.User
                 userUID = user.uid;
                 userName = user.displayName;
                 userName = document.getElementById("print-user-name").innerHTML = user.displayName
@@ -147,10 +121,10 @@
         });
 
     }
-function resetMessages() {
-    checkingMessage = [];
-    document.getElementById('get-messg').innerHTML = ''
-}
+    function resetMessages() {
+        checkingMessage = [];
+        document.getElementById('get-messg').innerHTML = ''
+    }
     function getUsers(uid) {
         var firebaseUsers = []
 
@@ -167,7 +141,7 @@ function resetMessages() {
                     let list = document.createElement('li');
                     list.addEventListener("click", () => {
                         selectUser(firebaseUsers[index], firebaseUsers)
-                        // console.log("Button is clicked" , selectUser(index));
+
                     });
                     list.setAttribute('class', 'list-group-item d-flex justify-content-between align-items-center');
                     let chatBox = document.createElement('div');
@@ -196,17 +170,24 @@ function resetMessages() {
     }
 
     function sendMsg() {
-        resetMessages()
-        console.log('setSelectedUser.userUID', setSelectedUser.userUID);
-        console.log('userUID', userUID)
+        console.log('setSelectedUser.userUID', setSelectedUser);
+        // console.log('userUID', userUID)
         var takingMessage = document.getElementById("write-msg").value
         console.log('takingMessage', takingMessage)
+        if (isEmpty(setSelectedUser)) {
+            alert('Please select user to chat!')
+            return true;
+        }
         if (takingMessage === '') {
             alert('Field is required')
         } else {
+            resetMessages();
+
             firebase.firestore().collection(`messeges`).doc(setSelectedUser.userUID).collection(userUID).add({
                 msg: takingMessage,
-                sender: userUID
+                sender: userUID,
+                time: new Date().getTime(),
+                class: 'reciever'
             })
                 .then(() => {
                     console.log("Document successfully written!");
@@ -218,7 +199,9 @@ function resetMessages() {
 
             firebase.firestore().collection(`messeges`).doc(userUID).collection(setSelectedUser.userUID).add({
                 msg: takingMessage,
-                sender: userUID
+                sender: userUID,
+                time: new Date().getTime(),
+                class: 'sender'
 
             })
                 .then(() => {
@@ -231,47 +214,50 @@ function resetMessages() {
             document.getElementById("write-msg").value = '';
         }
 
-        getmessages(setSelectedUser.userUID)
+
 
         return false
 
 
     }
-
+    function isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
+}
     function getmessages(selectedUserUid) {
-        // alert('CLICKED')
-        resetMessages()
- 
-        var docRef = firebase.firestore().collection(`messeges`).doc(userUID).collection(selectedUserUid);
+
+
+        var docRef = firebase.firestore().collection(`messeges`).doc(userUID).collection(selectedUserUid).orderBy('time', 'asc')
         docRef.onSnapshot((querySnapshot) => {
-               if(querySnapshot){
+            resetMessages()
+            if (querySnapshot) {
                 querySnapshot.forEach((doc) => {
                     checkingMessage.push(doc.data())
 
-                });
 
-                for (let index = 0; index < checkingMessage.length; index++) {
-                    
-                    if (userUID === checkingMessage[index].sender) {
+                });
+                if (checkingMessage.length > 0) {
+
+                    for (let index = 0; index < checkingMessage.length; index++) {
+
+
                         document.getElementById("get-messg").innerHTML += `
 
-<div class="msg sender"><span>${checkingMessage[index].msg}</span></div>
+<div class="msg ${checkingMessage[index].class}"><span>${checkingMessage[index].msg}</span></div>
 
 `
-                    } else {
 
-                        document.getElementById("get-messg").innerHTML += `
-    
-            <div class="msg"><span>${checkingMessage[index].msg}</span></div>
-    
-        `
                     }
-                }
-            
-               }
 
-            })
-           
+                }
+                console.log('checkingMessage==>', checkingMessage)
+            }
+
+        })
+
     }
 
 
